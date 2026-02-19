@@ -1,0 +1,746 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kcim
+---
+# =========================
+# Secrets
+# =========================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pg-secret
+  namespace: kcim
+type: Opaque
+stringData:
+  DB_HOST: "192.168.0.248"
+  DB_PORT: "5432"
+  DB_NAME: "kcimdbu"
+  DB_USER: "ccmsadm"
+  DB_PASS: "ccmsadm@"
+---
+# =========================
+# ConfigMaps
+# =========================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: kcim
+  name: kong-api-gw-config
+data:
+  kong.yml: |-
+    _format_version: "2.1"
+
+    consumers:
+      - username: kcc
+        custom_id: kcc
+      - username: iamusr
+        custom_id: iamusr
+
+    basicauth_credentials:
+      - consumer: kcc
+        username: kcc
+        password: "Kcc@123!"
+      - consumer: iamusr
+        username: iamusr
+        password: "iamusr@123!"
+
+    services:
+      # ===== AUTH (9090) =====
+      - name: auth-service
+        protocol: http
+        host: auth-service.kcim.svc.cluster.local
+        port: 9090
+        path: /api/auth
+        routes:
+          - name: auth-route
+            paths:
+              - /api/auth
+            strip_path: true
+
+      - name: authen-detail-service
+        protocol: http
+        host: auth-service.kcim.svc.cluster.local
+        port: 9090
+        path: /api/auth-detail
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: auth-detail-route
+            paths:
+              - /api/auth-detail
+            strip_path: true
+
+      # ===== KCIM (9091) =====
+      - name: dropdown-service
+        protocol: http
+        host: kcim-service.kcim.svc.cluster.local
+        port: 9091
+        path: /api/dropdown
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: dropdown-route
+            paths:
+              - /api/dropdown
+            strip_path: true
+
+      - name: kcim-service
+        protocol: http
+        host: kcim-service.kcim.svc.cluster.local
+        port: 9091
+        path: /api/kcim-service
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: kcim-service-route
+            paths:
+              - /api/kcim-service
+            strip_path: true
+
+      - name: kcim-menu-service
+        protocol: http
+        host: kcim-service.kcim.svc.cluster.local
+        port: 9091
+        path: /api/cim-menu
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: kcim-menu-route
+            paths:
+              - /api/cim-menu
+            strip_path: true
+
+      - name: kcim-ws-provider
+        protocol: http
+        host: kcim-service.kcim.svc.cluster.local
+        port: 9091
+        path: /api/ws
+        plugins:
+          - name: basic-auth
+            config:
+              hide_credentials: false
+        routes:
+          - name: kcim-provider-route
+            paths:
+              - /api/kcim-provider
+            strip_path: true
+
+      # ===== TRANSPORT (9092) =====
+      - name: transport-service
+        protocol: http
+        host: transport-service.kcim.svc.cluster.local
+        port: 9092
+        path: /api/transport-service
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: transport-service-route
+            paths:
+              - /api/transport-service
+            strip_path: true
+
+      - name: transport-menu-service
+        protocol: http
+        host: transport-service.kcim.svc.cluster.local
+        port: 9092
+        path: /api/rtm-menu
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: transport-menu-route
+            paths:
+              - /api/transport-menu
+            strip_path: true
+
+      - name: transport-dropdown-service
+        protocol: http
+        host: transport-service.kcim.svc.cluster.local
+        port: 9092
+        path: /api/transport-dropdown
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: transport-dropdown-route
+            paths:
+              - /api/transport-dropdown
+            strip_path: true
+
+      # ===== CCMS (9093) =====
+      - name: ccms-menu-service
+        protocol: http
+        host: ccms-service.kcim.svc.cluster.local
+        port: 9093
+        path: /api/ccms-menu
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: ccms-menu-route
+            paths:
+              - /api/ccms-menu
+            strip_path: true
+
+      - name: ccms-service
+        protocol: http
+        host: ccms-service.kcim.svc.cluster.local
+        port: 9093
+        path: /api/ccms-service
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: ccms-service-route
+            paths:
+              - /api/ccms-service
+            strip_path: true
+
+      - name: dropdown-ccms-service
+        protocol: http
+        host: ccms-service.kcim.svc.cluster.local
+        port: 9093
+        path: /api/ccms-dropdown
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: ccms-dropdown-route
+            paths:
+              - /api/ccms-dropdown
+            strip_path: true
+
+      # ===== ADMIN (9095) =====
+      - name: admin-menu-service
+        protocol: http
+        host: admin-service.kcim.svc.cluster.local
+        port: 9095
+        path: /api/admin-menu
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: admin-menu-route
+            paths:
+              - /api/admin-menu
+            strip_path: true
+
+      - name: admin-service
+        protocol: http
+        host: admin-service.kcim.svc.cluster.local
+        port: 9095
+        path: /api/admin-service
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: admin-service-route
+            paths:
+              - /api/admin-service
+            strip_path: true
+
+      - name: admin-dropdown
+        protocol: http
+        host: admin-service.kcim.svc.cluster.local
+        port: 9095
+        path: /api/admin-dropdown
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: admin-dropdown-route
+            paths:
+              - /api/admin-dropdown
+            strip_path: true
+
+      - name: iam-ws-provider
+        protocol: http
+        host: admin-service.kcim.svc.cluster.local
+        port: 9095
+        path: /api/iam-service
+        plugins:
+          - name: basic-auth
+            config:
+              hide_credentials: false
+        routes:
+          - name: iam-service-route
+            paths:
+              - /api/iam-service
+            strip_path: true
+
+      - name: admin-health
+        protocol: http
+        host: admin-service.kcim.svc.cluster.local
+        port: 9095
+        path: /actuator
+        routes:
+          - name: admin-health-route
+            paths:
+              - /api/admin-health
+            strip_path: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: kcim
+  name: auth-service-config
+data:
+  application.yml: |+
+    server:
+      port: 8080
+      tomcat:
+        mbeanregistry:
+          enabled: true
+
+    spring:
+      application:
+        name: auth-service
+      main:
+        allow-bean-definition-overriding: true
+
+      datasource:
+        kcim:
+          initialization-mode: always
+          driverClassName: org.postgresql.Driver
+          jdbcUrl: jdbc:postgresql://192.168.0.248:5432/kcimdbp
+          username: ciadm
+          password: ciadm@
+        kcc:
+          initialization-mode: always
+          driverClassName: org.postgresql.Driver
+          jdbcUrl: jdbc:postgresql://192.168.0.248:5432/kcimdbp
+          username: ciadm
+          password: ciadm@
+
+      jpa:
+        hibernate:
+          ddl-auto: none
+        show-sql: false
+
+      redis:
+        database: 0
+        port: 16379
+        password: "redis@"
+        timeout: 60000
+        sentinel:
+          master: redis-cluster
+          password: "redis@"
+          nodes:
+            - "10.8.52.191:16379"
+            - "10.8.52.192:16380"
+            - "10.8.52.193:16381"
+          lettuce:
+            shutdown-timeout: 200ms
+      profiles:
+        active: cluster
+      cache:
+        type: redis
+        redis:
+          key-prefix: "prod"
+          use-key-prefix: true
+          time-to-live: 1800000
+
+    dbname:
+      kcim: kcim
+      kcc: kcc
+
+    management:
+      security:
+        enabled: false
+      endpoints:
+        health:
+          sensitive: false
+        web:
+          exposure:
+            include: "*"
+---
+# =========================
+# kong-api-gw (HTTP only)
+# =========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kong-api-gw
+  name: kong-api-gw
+  namespace: kcim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kong-api-gw
+  template:
+    metadata:
+      labels:
+        app: kong-api-gw
+    spec:
+      containers:
+        - name: kong-api-gw
+          image: teegolf/kong-dbless:0.5.47
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+            - containerPort: 8001
+          env:
+            - name: KONG_PLUGINS
+              value: "bundled,custom-auth,custom-header,circuit-breaker"
+            - name: KONG_DATABASE
+              value: "off"
+            - name: KONG_DECLARATIVE_CONFIG
+              value: "/etc/kong-config/kong.yml"
+            - name: KONG_PROXY_LISTEN
+              value: "0.0.0.0:8000"
+            - name: KONG_ADMIN_LISTEN
+              value: "0.0.0.0:8001"
+            - name: KONG_STATUS_LISTEN
+              value: "0.0.0.0:8100"
+            - name: KONG_STREAM_LISTEN
+              value: "off"
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8001
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          volumeMounts:
+            - mountPath: /etc/kong-config/
+              name: kong-api-gw-volume
+      volumes:
+        - name: kong-api-gw-volume
+          configMap:
+            name: kong-api-gw-config
+            defaultMode: 420
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kong-api-gw
+  name: kong-api-service
+  namespace: kcim
+spec:
+  type: ClusterIP
+  selector:
+    app: kong-api-gw
+  ports:
+    - name: proxy-http
+      port: 8000
+      targetPort: 8000
+    - name: admin-http
+      port: 8001
+      targetPort: 8001
+---
+# =========================
+# kcim3-web (frontend)
+# =========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kcim3-web
+  namespace: kcim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kcim3-web
+  template:
+    metadata:
+      labels:
+        app: kcim3-web
+    spec:
+      containers:
+        - name: kcim3-web
+          image: teegolf/kcim3:3.0.0.1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kcim3-web
+  namespace: kcim
+spec:
+  type: ClusterIP
+  selector:
+    app: kcim3-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+---
+# =========================
+# admin-service (expose 9095 -> target 8080)
+# =========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-service
+  namespace: kcim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-service
+  template:
+    metadata:
+      labels:
+        app: admin-service
+    spec:
+      containers:
+        - name: admin-service
+          image: admin-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "k8s"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service
+  namespace: kcim
+spec:
+  type: ClusterIP
+  selector:
+    app: admin-service
+  ports:
+    - name: http
+      port: 9095
+      targetPort: 8080
+---
+# =========================
+# auth-service (expose 9090 -> target 8080) + mount config
+# =========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: kcim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: auth-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "k8s"
+          volumeMounts:
+            - name: auth-config
+              mountPath: /config
+      volumes:
+        - name: auth-config
+          configMap:
+            name: auth-service-config
+            items:
+              - key: application.yml
+                path: application.yml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: kcim
+spec:
+  type: ClusterIP
+  selector:
+    app: auth-service
+  ports:
+    - name: http
+      port: 9090
+      targetPort: 8080
+---
+# =========================
+# ccms-service (expose 9093 -> target 8080) + pg-secret env
+# =========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ccms-service
+  namespace: kcim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ccms-service
+  template:
+    metadata:
+      labels:
+        app: ccms-service
+    spec:
+      containers:
+        - name: ccms-service
+          image: ccms-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "k8s"
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: pg-secret
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: pg-secret
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: pg-secret
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: pg-secret
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: pg-secret
+                  key: DB_PASS
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "$(DB_USER)"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "$(DB_PASS)"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ccms-service
+  namespace: kcim
+spec:
+  type: ClusterIP
+  selector:
+    app: ccms-service
+  ports:
+    - name: http
+      port: 9093
+      targetPort: 8080
+---
+# =========================
+# kcim-service (expose 9091 -> target 8080)
+# =========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kcim-service
+  namespace: kcim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kcim-service
+  template:
+    metadata:
+      labels:
+        app: kcim-service
+    spec:
+      containers:
+        - name: kcim-service
+          image: kcim-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "k8s"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kcim-service
+  namespace: kcim
+spec:
+  type: ClusterIP
+  selector:
+    app: kcim-service
+  ports:
+    - name: http
+      port: 9091
+      targetPort: 8080
+---
+# =========================
+# transport-service (expose 9092 -> target 8080)
+# =========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transport-service
+  namespace: kcim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transport-service
+  template:
+    metadata:
+      labels:
+        app: transport-service
+    spec:
+      containers:
+        - name: transport-service
+          image: transport-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "k8s"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transport-service
+  namespace: kcim
+spec:
+  type: ClusterIP
+  selector:
+    app: transport-service
+  ports:
+    - name: http
+      port: 9092
+      targetPort: 8080
