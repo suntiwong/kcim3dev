@@ -1,7 +1,9 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: kcim
+
 ---
 # =========================
 # Secrets
@@ -18,6 +20,7 @@ stringData:
   DB_NAME: "kcimdbu"
   DB_USER: "ccmsadm"
   DB_PASS: "ccmsadm@"
+
 ---
 # =========================
 # ConfigMaps
@@ -29,7 +32,7 @@ metadata:
   name: kong-api-gw-config
 data:
   kong.yml: |-
-    _format_version: "2.1"
+    _format_version: "3.0"
 
     consumers:
       - username: kcc
@@ -297,6 +300,7 @@ data:
             paths:
               - /api/admin-health
             strip_path: true
+
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -372,6 +376,7 @@ data:
         web:
           exposure:
             include: "*"
+
 ---
 # =========================
 # kong-api-gw (HTTP only)
@@ -415,6 +420,11 @@ spec:
               value: "0.0.0.0:8100"
             - name: KONG_STREAM_LISTEN
               value: "off"
+            # ✅ แก้ไขหลัก: ปิด default SSL cert
+            - name: KONG_SSL_CERT_DEFAULT
+              value: ""
+            - name: KONG_SSL_CERT_KEY_DEFAULT
+              value: ""
           readinessProbe:
             httpGet:
               path: /status
@@ -435,6 +445,7 @@ spec:
           configMap:
             name: kong-api-gw-config
             defaultMode: 420
+
 ---
 apiVersion: v1
 kind: Service
@@ -454,6 +465,7 @@ spec:
     - name: admin-http
       port: 8001
       targetPort: 8001
+
 ---
 # =========================
 # kcim3-web (frontend)
@@ -479,6 +491,7 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 80
+
 ---
 apiVersion: v1
 kind: Service
@@ -493,6 +506,7 @@ spec:
     - name: http
       port: 80
       targetPort: 80
+
 ---
 # =========================
 # admin-service (expose 9095 -> target 8080)
@@ -521,6 +535,7 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "k8s"
+
 ---
 apiVersion: v1
 kind: Service
@@ -535,6 +550,7 @@ spec:
     - name: http
       port: 9095
       targetPort: 8080
+
 ---
 # =========================
 # auth-service (expose 9090 -> target 8080) + mount config
@@ -573,6 +589,7 @@ spec:
             items:
               - key: application.yml
                 path: application.yml
+
 ---
 apiVersion: v1
 kind: Service
@@ -587,6 +604,7 @@ spec:
     - name: http
       port: 9090
       targetPort: 8080
+
 ---
 # =========================
 # ccms-service (expose 9093 -> target 8080) + pg-secret env
@@ -646,6 +664,7 @@ spec:
               value: "$(DB_USER)"
             - name: SPRING_DATASOURCE_PASSWORD
               value: "$(DB_PASS)"
+
 ---
 apiVersion: v1
 kind: Service
@@ -660,6 +679,7 @@ spec:
     - name: http
       port: 9093
       targetPort: 8080
+
 ---
 # =========================
 # kcim-service (expose 9091 -> target 8080)
@@ -688,6 +708,7 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "k8s"
+
 ---
 apiVersion: v1
 kind: Service
@@ -702,6 +723,7 @@ spec:
     - name: http
       port: 9091
       targetPort: 8080
+
 ---
 # =========================
 # transport-service (expose 9092 -> target 8080)
@@ -730,6 +752,7 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "k8s"
+
 ---
 apiVersion: v1
 kind: Service
