@@ -1,0 +1,400 @@
+
+
+---
+# ConfigMap: Kong configuration (DB-less mode)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kong-api-gw-config
+  namespace: kcim
+data:
+  kong.conf: |-
+    database = off
+    nginx_worker_processes = 1
+    log_level = debug
+    proxy_listen = 0.0.0.0:8000
+    admin_listen = 0.0.0.0:8001
+    ssl_cert_default =
+    ssl_cert_key_default =
+
+  kong.yml: |-
+    _format_version: "3.0"
+
+    consumers:
+      - username: kcc
+        custom_id: kcc
+      - username: iamusr
+        custom_id: iamusr
+
+    basicauth_credentials:
+      - consumer: kcc
+        username: kcc
+        password: "Kcc@123!"
+      - consumer: iamusr
+        username: iamusr
+        password: "iamusr@123!"
+
+    services:
+      # ===== AUTH (9090) =====
+      - name: auth-service
+        protocol: http
+        host: auth-service.kcim.svc.cluster.local
+        port: 9090
+        path: /api/auth
+        routes:
+          - name: auth-route
+            paths:
+              - /api/auth
+            strip_path: true
+
+      - name: authen-detail-service
+        protocol: http
+        host: auth-service.kcim.svc.cluster.local
+        port: 9090
+        path: /api/auth-detail
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: auth-detail-route
+            paths:
+              - /api/auth-detail
+            strip_path: true
+
+      # ===== KCIM (9091) =====
+      - name: dropdown-service
+        protocol: http
+        host: kcim-service.kcim.svc.cluster.local
+        port: 9091
+        path: /api/dropdown
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: dropdown-route
+            paths:
+              - /api/dropdown
+            strip_path: true
+
+      - name: kcim-service
+        protocol: http
+        host: kcim-service.kcim.svc.cluster.local
+        port: 9091
+        path: /api/kcim-service
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: kcim-service-route
+            paths:
+              - /api/kcim-service
+            strip_path: true
+
+      - name: kcim-menu-service
+        protocol: http
+        host: kcim-service.kcim.svc.cluster.local
+        port: 9091
+        path: /api/cim-menu
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: kcim-menu-route
+            paths:
+              - /api/cim-menu
+            strip_path: true
+
+      - name: kcim-ws-provider
+        protocol: http
+        host: kcim-service.kcim.svc.cluster.local
+        port: 9091
+        path: /api/ws
+        plugins:
+          - name: basic-auth
+            config:
+              hide_credentials: false
+        routes:
+          - name: kcim-provider-route
+            paths:
+              - /api/kcim-provider
+            strip_path: true
+
+      # ===== TRANSPORT (9092) =====
+      - name: transport-service
+        protocol: http
+        host: transport-service.kcim.svc.cluster.local
+        port: 9092
+        path: /api/transport-service
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: transport-service-route
+            paths:
+              - /api/transport-service
+            strip_path: true
+
+      - name: transport-menu-service
+        protocol: http
+        host: transport-service.kcim.svc.cluster.local
+        port: 9092
+        path: /api/rtm-menu
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: transport-menu-route
+            paths:
+              - /api/transport-menu
+            strip_path: true
+
+      - name: transport-dropdown-service
+        protocol: http
+        host: transport-service.kcim.svc.cluster.local
+        port: 9092
+        path: /api/transport-dropdown
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: transport-dropdown-route
+            paths:
+              - /api/transport-dropdown
+            strip_path: true
+
+      # ===== CCMS (9093) =====
+      - name: ccms-menu-service
+        protocol: http
+        host: ccms-service.kcim.svc.cluster.local
+        port: 9093
+        path: /api/ccms-menu
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: ccms-menu-route
+            paths:
+              - /api/ccms-menu
+            strip_path: true
+
+      - name: ccms-service
+        protocol: http
+        host: ccms-service.kcim.svc.cluster.local
+        port: 9093
+        path: /api/ccms-service
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: ccms-service-route
+            paths:
+              - /api/ccms-service
+            strip_path: true
+
+      - name: dropdown-ccms-service
+        protocol: http
+        host: ccms-service.kcim.svc.cluster.local
+        port: 9093
+        path: /api/ccms-dropdown
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: ccms-dropdown-route
+            paths:
+              - /api/ccms-dropdown
+            strip_path: true
+
+      # ===== ADMIN (9095) =====
+      - name: admin-menu-service
+        protocol: http
+        host: admin-service.kcim.svc.cluster.local
+        port: 9095
+        path: /api/admin-menu
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: admin-menu-route
+            paths:
+              - /api/admin-menu
+            strip_path: true
+
+      - name: admin-service
+        protocol: http
+        host: admin-service.kcim.svc.cluster.local
+        port: 9095
+        path: /api/admin-service
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: admin-service-route
+            paths:
+              - /api/admin-service
+            strip_path: true
+
+      - name: admin-dropdown
+        protocol: http
+        host: admin-service.kcim.svc.cluster.local
+        port: 9095
+        path: /api/admin-dropdown
+        plugins:
+          - name: custom-auth
+            config:
+              authVerifyTokenEndpoint: http://auth-service.kcim.svc.cluster.local:9090/verifyToken
+        routes:
+          - name: admin-dropdown-route
+            paths:
+              - /api/admin-dropdown
+            strip_path: true
+
+      - name: iam-ws-provider
+        protocol: http
+        host: admin-service.kcim.svc.cluster.local
+        port: 9095
+        path: /api/iam-service
+        plugins:
+          - name: basic-auth
+            config:
+              hide_credentials: false
+        routes:
+          - name: iam-service-route
+            paths:
+              - /api/iam-service
+            strip_path: true
+
+      - name: admin-health
+        protocol: http
+        host: admin-service.kcim.svc.cluster.local
+        port: 9095
+        path: /actuator
+        routes:
+          - name: admin-health-route
+            paths:
+              - /api/admin-health
+            strip_path: true
+
+---
+# Deployment: Kong API Gateway (DB-less)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong-api-gw
+  namespace: kcim
+  labels:
+    app: kong-api-gw
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kong-api-gw
+  template:
+    metadata:
+      labels:
+        app: kong-api-gw
+    spec:
+      initContainers:
+        - name: gen-admin-cert
+          image: alpine:3.19
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              apk add --no-cache openssl &&
+              mkdir -p /ssl &&
+              openssl req -x509 -nodes -newkey rsa:2048 \
+                -keyout /ssl/admin-kong-default.key \
+                -out /ssl/admin-kong-default.crt \
+                -subj "/CN=kong-admin" \
+                -days 365
+          volumeMounts:
+            - name: kong-admin-ssl
+              mountPath: /ssl
+
+      containers:
+        - name: kong-api-gw
+          image: teegolf/kong-dbless:0.5.47
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+            - containerPort: 8001
+
+          env:
+            - name: KONG_PLUGINS
+              value: "bundled,custom-auth,custom-header,circuit-breaker"
+            - name: KONG_DATABASE
+              value: "off"
+            - name: KONG_DECLARATIVE_CONFIG
+              value: "/etc/kong-config/kong.yml"
+            - name: KONG_ADMIN_LISTEN
+              value: "0.0.0.0:8001"
+
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8001
+            initialDelaySeconds: 30
+            periodSeconds: 15
+
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "0.5"
+              memory: "500Mi"
+
+          volumeMounts:
+            - name: kong-api-gw-volume
+              mountPath: /etc/kong-config/
+            - name: kong-admin-ssl
+              mountPath: /usr/local/kong/ssl
+              readOnly: true
+
+      volumes:
+        - name: kong-api-gw-volume
+          configMap:
+            name: kong-api-gw-config
+            defaultMode: 420
+        - name: kong-admin-ssl
+          emptyDir: {}
+
+---
+# Service: expose Kong proxy & admin API
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-api-service
+  namespace: kcim
+  labels:
+    app: kong-api-gw
+spec:
+  selector:
+    app: kong-api-gw
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+    - name: http-admin
+      protocol: TCP
+      port: 8001
+      targetPort: 8001
