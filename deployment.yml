@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kong-api-gw
+  name: kong-api-gw
+  namespace: kcim
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kong-api-gw
+  template:
+    metadata:
+      labels:
+        app: kong-api-gw
+    spec:
+      securityContext:
+        fsGroup: 1000
+
+      initContainers:
+        - name: gen-kong-certs
+          image: alpine:3.19
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              apk add --no-cache openssl
+              mkdir -p /ssl
+
+              # 1) admin RSA
+              openssl req -x509 -nodes -newkey rsa:2048 \
+                -keyout /ssl/admin-kong-default.key \
+                -out /ssl/admin-kong-default.crt \
+                -subj "/CN=kong-admin" -days 365
+
+              # 2) admin ECDSA
+              openssl req -x509 -nodes -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
+                -keyout /ssl/admin-kong-default-ecdsa.key \
+                -out /ssl/admin-kong-default-ecdsa.crt \
+                -subj "/CN=kong-admin" -days 365
+
+              # 3) default RSA
+              openssl req -x509 -nodes -newkey rsa:2048 \
+                -keyout /ssl/kong-default.key \
+                -out /ssl/kong-default.crt \
+                -subj "/CN=kong" -days 365
+
+              # 4) default ECDSA
+              openssl req -x509 -nodes -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
+                -keyout /ssl/kong-default-ecdsa.key \
+                -out /ssl/kong-default-ecdsa.crt \
+                -subj "/CN=kong" -days 365
+
+              # DEV: ให้ทุก user อ่านได้
+              chmod 0644 /ssl/*.crt
+              chmod 0644 /ssl/*.key
+          volumeMounts:
+            - name: kong-ssl
+              mountPath: /ssl
+
+      containers:
+        - name: kong-api-gw
+          image: teegolf/kong-dbless:0.5.47
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+            - containerPort: 8001
+          env:
+            - name: KONG_DATABASE
+              value: "off"
+            - name: KONG_DECLARATIVE_CONFIG
+              value: "/etc/kong-config/kong.yml"
+            - name: KONG_ADMIN_LISTEN
+              value: "0.0.0.0:8001"
+            - name: KONG_PLUGINS
+              value: "bundled,custom-auth"
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8001
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "0.5"
+              memory: "500Mi"
+          volumeMounts:
+            - name: kong-api-gw-volume
+              mountPath: /etc/kong-config/
+            - name: kong-ssl
+              mountPath: /usr/local/kong/ssl
+
+      volumes:
+        - name: kong-api-gw-volume
+          configMap:
+            name: kong-api-gw-config
+            defaultMode: 420
+        - name: kong-ssl
+          emptyDir: {}

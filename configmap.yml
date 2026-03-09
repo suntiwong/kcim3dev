@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: kcim
+  name: auth-service-config
+data:
+  application.yml: |+
+    server:
+      port: 8080
+      tomcat:
+        mbeanregistry:
+          enabled: true
+
+    spring:
+      application:
+        name: auth-service
+      main: 
+        allow-bean-definition-overriding: true
+      
+      datasource:
+        kcim:
+          initialization-mode: always
+          driverClassName: org.postgresql.Driver
+          jdbcUrl: jdbc:postgresql://192.168.0.248:5432/kcimdbu
+          username: ciadm
+          password: ciadm@
+        kcc:
+          initialization-mode: always
+          driverClassName: org.postgresql.Driver
+          jdbcUrl: jdbc:postgresql://192.168.0.248:5432/kcimdbu
+          username: ciadm
+          password: ciadm@
+      
+      jpa:
+        hibernate:
+          ddl-auto: none
+        show-sql: false
+        
+      redis:
+        database: 0
+        port: 16379
+        password: "redis@"
+        timeout: 60000
+        sentinel:
+          master: redis-cluster
+          password: "redis@"
+          nodes:
+            - "10.8.52.191:16379"
+            - "10.8.52.192:16380"
+            - "10.8.52.193:16381"
+          lettuce:
+            shutdown-timeout: 200ms
+      profiles:
+        active: cluster
+      cache:
+        type: redis
+        redis:
+          key-prefix: "prod"
+          use-key-prefix: true
+          time-to-live: 1800000
+      
+   
+    dbname:
+      kcim: kcim
+      kcc: kcc  
+        
+
+    management:
+      security:
+        enabled: false
+      endpoints:
+        health:
+          sensitive: false
+        web:
+          exposure:
+            include: "*"
+
+    services:
+      second: http://cim2
+      
+    ldap: 
+      initialcontextfactory: com.sun.jndi.ldap.LdapCtxFactory
+      ktb: 
+        providerurl: ldap://ldap.oud.krungthai:389
+        securityprincipal: ",ou=people,o=ktb.co.th,o=kcs"
+        manager: 
+          searchscope: "o=ktb.co.th,o=kcs"
+          userid: "uid=ktbquery,ou=people,o=kcs"
+          password: "p!H2nPaqwn7Zv8"
+      
+      otb: 
+        providerurl: ldap://ldap.oud.krungthai:10394/o=kcs
+        securityprincipal: ",ou=people,o=kcs"
+        securityprincipallogin: ",ou=people,o=kcim2,o=kcs"
+        securityprincipalverify: ",ou=people,o=kcim2,o=kcs"
+        manager: 
+          searchscope: ""
+          userid: "kcim2admin"
+          password: "kcim2adm"
+          providerurl: ldap://ldap.oud.krungthai:10394
+        suffix: ",ou=people,o=kcim2,o=kcs"
+      ktbgs: 
+        providerurl: ldap://192.168.0.59:389/o=kcs
+        securityprincipal: ",ou=People,o=ktbgs.co.th,o=kcs"
+        manager:
+          searchscope: ""
+          
+          
+    ad: 
+        domain: KGS
+
+        host: ldap://192.168.0.59:389
+        hosta: ldap://192.168.0.59:389
+        hostb: ldap://192.168.0.59:389
+
+        searchbase: DC=KGS,DC=CO,DC=TH
+
+        user: "Administrator@KGS.CO.TH"
+        password: "B8HYSZJsa?"
+          
+    jwt:
+      secretKey: qMguPwXjaAQnGDzngLBuCcGM7TX76kHR
+      refSecretKey: NeVSVszwDrNrCDzp2v6CklHbzh8b8sCP
+      issuer: KCIM-AUTH
+      subject: KCIM-AUTH-PROFILE
+      exp: 900000
+
+      expRefresh: 1800000
+
+
+
