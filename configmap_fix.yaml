@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-config
+  namespace: kcim
+data:
+  SPRING_LDAP_URLS: ldap://192.168.0.59:389
+  SPRING_LDAP_BASE: dc=kgs,dc=co,dc=th
+  SPRING_LDAP_USERNAME: serviceaccount@kgs.co.th
+  SPRING_LDAP_PASSWORD: password
