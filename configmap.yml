@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: v2
 kind: ConfigMap
 metadata:
 name: auth-service-config
@@ -117,3 +117,4 @@ jwt:
   exp: 900000
   expRefresh: 1800000
 ```
+
