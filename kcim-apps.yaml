@@ -48,7 +48,7 @@ metadata:
   name: auth-service
   namespace: kcim
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: auth-service
@@ -261,4 +261,5 @@ spec:
     - name: http
       port: 9092
       targetPort: 9092
+
 
