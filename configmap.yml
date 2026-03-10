@@ -80,13 +80,13 @@ data:
       
     ldap: 
       initialcontextfactory: com.sun.jndi.ldap.LdapCtxFactory
-      ktb: 
-        providerurl: ldap://ldap.oud.krungthai:389
-        securityprincipal: ",ou=people,o=ktb.co.th,o=kcs"
+      ktbgs: 
+        providerurl: ldap://192.168.0.59:389
+        securityprincipal: ",ou=People,o=kgs.co.th,o=kcs"
         manager: 
-          searchscope: "o=ktb.co.th,o=kcs"
-          userid: "uid=ktbquery,ou=people,o=kcs"
-          password: "p!H2nPaqwn7Zv8"
+          searchscope: ""
+          userid: "Administrator@KGS.CO.TH"
+          password: "B8HYSZJsa?"
       
       otb: 
         providerurl: ldap://ldap.oud.krungthai:10394/o=kcs
@@ -117,6 +117,12 @@ data:
 
         user: "Administrator@KGS.CO.TH"
         password: "B8HYSZJsa?"
+
+        userSearchBase: DC=KGS,DC=CO,DC=TH
+        userSearchFilter: (sAMAccountName={0})
+        
+        connectTimeout: 5000
+        readTimeout: 5000
           
     jwt:
       secretKey: qMguPwXjaAQnGDzngLBuCcGM7TX76kHR
@@ -126,6 +132,7 @@ data:
       exp: 900000
 
       expRefresh: 1800000
+
 
 
 
