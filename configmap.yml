@@ -36,28 +36,28 @@ data:
           ddl-auto: none
         show-sql: false
         
-      redis:
-        database: 0
-        port: 16379
-        password: "redis@"
-        timeout: 60000
-        sentinel:
-          master: redis-cluster
-          password: "redis@"
-          nodes:
-            - "10.8.52.191:16379"
-            - "10.8.52.192:16380"
-            - "10.8.52.193:16381"
-          lettuce:
-            shutdown-timeout: 200ms
-      profiles:
-        active: cluster
-      cache:
-        type: redis
-        redis:
-          key-prefix: "prod"
-          use-key-prefix: true
-          time-to-live: 1800000
+      #redis:
+      #  database: 0
+      #  port: 16379
+      #  password: "redis@"
+      #  timeout: 60000
+      #  sentinel:
+      #    master: redis-cluster
+      #    password: "redis@"
+      #    nodes:
+      #      - "10.8.52.191:16379"
+      #      - "10.8.52.192:16380"
+      #      - "10.8.52.193:16381"
+      #    lettuce:
+      #      shutdown-timeout: 200ms
+      #profiles:
+      #  active: cluster
+      #cache:
+      #  type: redis
+      #  redis:
+      #    key-prefix: "prod"
+      #    use-key-prefix: true
+      #    time-to-live: 1800000
       
    
     dbname:
@@ -132,6 +132,7 @@ data:
       exp: 900000
 
       expRefresh: 1800000
+
 
 
 
