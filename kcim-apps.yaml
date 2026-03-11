@@ -9,7 +9,7 @@ metadata:
   name: admin-service
   namespace: kcim
 spec:
-  replicas: 1
+  replicas: 4
   selector:
     matchLabels:
       app: admin-service
@@ -261,5 +261,6 @@ spec:
     - name: http
       port: 9092
       targetPort: 9092
+
 
 
