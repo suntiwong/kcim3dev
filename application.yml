@@ -1,6 +1,0 @@
-data:
-  application.yml: |
-    spring:
-      ldap:
-        urls: ldap://192.168.0.59:389
-        base: dc=kgs,dc=co,dc=th
