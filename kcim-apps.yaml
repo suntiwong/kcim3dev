@@ -63,11 +63,7 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 9090
-          envFrom:
-          - configMapRef:
-              name: auth-service-config
-          - secretRef:
-              name: auth-service-ldap-secret
+
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "k8s"
@@ -266,6 +262,7 @@ spec:
     - name: http
       port: 9092
       targetPort: 9092
+
 
 
 
