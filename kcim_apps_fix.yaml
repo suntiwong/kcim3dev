@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: kcim/auth-service:latest
+        image: auth-service:latest
         ports:
         - containerPort: 9090
         envFrom:
