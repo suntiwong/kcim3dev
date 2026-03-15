@@ -1,0 +1,18 @@
+spec:
+  template:
+    spec:
+      containers:
+      - name: auth-service
+        image: auth-service:latest
+        ports:
+        - containerPort: 9090
+
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: k8s
+
+        envFrom:
+        - configMapRef:
+            name: auth-service-config
+        - secretRef:
+            name: auth-service-ldap-secret
