@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-config
+  namespace: kcim
+data:
+  SPRING_PROFILES_ACTIVE: k8s
+
+  # LDAP
+  SPRING_LDAP_URLS: ldap://192.168.0.59:389
+  SPRING_LDAP_BASE: dc=kgs,dc=co,dc=th
+
+  # PostgreSQL
+  SPRING_DATASOURCE_URL: jdbc:postgresql://192.168.0.100:5432/kcimdb
