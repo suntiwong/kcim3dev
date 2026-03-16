@@ -123,7 +123,7 @@ spec:
                   name: pg-secret
                   key: DB_NAME
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://192.168.0.248:5432/kcimdu"
+              value: "jdbc:postgresql://$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
