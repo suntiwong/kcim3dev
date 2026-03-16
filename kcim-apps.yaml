@@ -128,12 +128,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: pg-secret
-                  key: ciadm
+                  key: DB_USER
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: pg-secret
-                  key: ciadm@
+                  key: DB_PASS
 ---
 apiVersion: v1
 kind: Service
