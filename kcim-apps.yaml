@@ -48,7 +48,7 @@ metadata:
   name: auth-service
   namespace: kcim
 spec:
-  replicas: 1
+  replicas: 4
   selector:
     matchLabels:
       app: auth-service
