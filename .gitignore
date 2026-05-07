@@ -1,0 +1,32 @@
+# =====================================================
+# Sensitive Kubernetes manifests (NEVER commit secrets)
+# =====================================================
+# Plain-text Secret manifests
+*-secret.yml
+*-secret.yaml
+secret-*.yml
+secret-*.yaml
+*.secret.yaml
+*.secret.yml
+
+# Environment / credential files
+.env
+.env.*
+*.env
+credentials.*
+*.kubeconfig
+
+# Local kubectl config
+kubeconfig
+.kube/
+
+# =====================================================
+# OS / Editor
+# =====================================================
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+.idea/
+.vscode/

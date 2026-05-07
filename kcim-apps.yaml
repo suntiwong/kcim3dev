@@ -3,6 +3,9 @@ kind: Namespace
 metadata:
   name: kcim
 ---
+# ============================================================
+# admin-service
+# ============================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -42,36 +45,11 @@ spec:
       port: 9095
       targetPort: 9095
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: auth-service
-  namespace: kcim
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: auth-service
-  template:
-    metadata:
-      labels:
-        app: auth-service
-    spec:
-      containers:
-        - name: auth-service
-          image: auth-service:latest
-          imagePullPolicy: Never
-          ports:
-            - containerPort: 9090
-          envFrom:
-          - configMapRef:
-              name: auth-service-config
-          - secretRef:
-              name: auth-service-secret
-          env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: "k8s"
----
+# ============================================================
+# auth-service Service only
+# (Deployment is defined in auth-service-deployment.yaml
+#  to avoid duplicate manifests in ArgoCD)
+# ============================================================
 apiVersion: v1
 kind: Service
 metadata:
@@ -86,6 +64,9 @@ spec:
       port: 9090
       targetPort: 9090
 ---
+# ============================================================
+# ccms-service
+# ============================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -110,7 +91,6 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "k8s"
-            # PostgreSQL (ต้องมี secret pg-secret)
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
@@ -153,6 +133,9 @@ spec:
       port: 9093
       targetPort: 9093
 ---
+# ============================================================
+# kcim-service
+# ============================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -192,28 +175,11 @@ spec:
       port: 9091
       targetPort: 9091
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: kcim3-web
-  namespace: kcim
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: kcim3-web
-  template:
-    metadata:
-      labels:
-        app: kcim3-web
-    spec:
-      containers:
-        - name: kcim3-web
-          image: teegolf/kcim3:3.0.0.1
-          imagePullPolicy: Never
-          ports:
-            - containerPort: 80
----
+# ============================================================
+# kcim3-web Service only
+# (Deployment is defined in kcim3-web-deploy.yaml
+#  which mounts the nginx ConfigMap for /api/ proxy)
+# ============================================================
 apiVersion: v1
 kind: Service
 metadata:
@@ -228,6 +194,9 @@ spec:
       port: 80
       targetPort: 80
 ---
+# ============================================================
+# transport-service
+# ============================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -266,11 +235,3 @@ spec:
     - name: http
       port: 9092
       targetPort: 9092
-
-
-
-
-
-
-
-
